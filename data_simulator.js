@@ -20,7 +20,7 @@
           "display_name": "Start Value",
           "type": "number",
           "description": "Minimum value simulator should return",
-          "required": true,
+          "required": false,
           "default_value": 0
         },
         {
@@ -42,15 +42,23 @@
           "name": "incremental",
           "display_name": "Increment values?",
           "type": "boolean",
-          "description": "If enabled, the values would keep incrementing one by one till it reaches the max limit",
+          "description": "If enabled, the values would keep incrementing by the incremental factor till it reaches the max limit",
           "default_value": false
         },
         {
           "name": "incremental_val",
-          "display_name": "Incremental Value",
+          "display_name": "Incremental Factor",
           "type": "number",
           "description": "Value to increment if increment values is enabled",
           "required": true,
+          "default_value": 1
+        },
+        {
+          "name": "decimal_places",
+          "display_name": "Decimal places",
+          "type": "number",
+          "description": "Decimal places if Integer only is set to false",
+          "required": false,
           "default_value": 1
         },
         {
@@ -80,12 +88,13 @@
         }
 
         function randomFloatFromInterval(min, max) { // min and max included
-            return parseFloat((Math.random() * (min - max) + max).toFixed(2));
+            return Math.random() * (min - max) + max;
         }
 
 		function getData()
 		{
-            var newData;
+            var newData, decimalHelper;
+            decimalHelper = Math.pow(10,currentSettings.decimal_places);
 
             if(currentSettings.incremental) {
                 if(lastVal == -9999) {
@@ -96,6 +105,8 @@
                     if(newData > currentSettings.end_val)
                         newData = currentSettings.start_val;
                 }
+
+                newData = Math.round(newData * decimalHelper)/decimalHelper;
                 lastVal = newData;
             }
             else {
@@ -104,14 +115,17 @@
                 }
                 else {
                     newData = randomFloatFromInterval(currentSettings.start_val, currentSettings.end_val);
+                    newData = Math.round(newData * decimalHelper)/decimalHelper;
                 }
             }
 
-            noLastVal = false;
             updateCallback(newData);
 		}
 
         var refreshTimer;
+
+        currentSettings.start_val = currentSettings.start_val ? currentSettings.start_val : 0;
+        currentSettings.decimal_places = currentSettings.decimal_places ? currentSettings.decimal_places : 0;
 
         function createRefreshTimer(interval)
 		{
@@ -130,6 +144,8 @@
 
         self.onSettingsChanged = function(newSettings)
 		{
+            newSettings.start_val = newSettings.start_val ? newSettings.start_val : 0;
+            newSettings.decimal_places = newSettings.decimal_places ? newSettings.decimal_places : 0;
             currentSettings = newSettings;
 		}
 
